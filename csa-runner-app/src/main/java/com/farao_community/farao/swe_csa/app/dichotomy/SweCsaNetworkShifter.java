@@ -20,9 +20,10 @@ import com.powsybl.iidm.modification.scalable.ScalingParameters;
 import com.powsybl.iidm.network.Country;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.loadflow.LoadFlow;
-import com.powsybl.loadflow.LoadFlowParameters;
 import com.powsybl.loadflow.LoadFlowResult;
 import com.powsybl.openrao.commons.EICode;
+import com.powsybl.openrao.raoapi.parameters.RaoParameters;
+import com.powsybl.openrao.raoapi.parameters.extensions.LoadFlowAndSensitivityParameters;
 
 import java.util.*;
 
@@ -60,7 +61,7 @@ public final class SweCsaNetworkShifter {
         this.esPtInitialExchange = esPtInitialExchange;
     }
 
-    public void applyCounterTrading(CounterTradingValues counterTradingValues, Network network) throws GlskLimitationException, ShiftingException {
+    public void applyCounterTrading(CounterTradingValues counterTradingValues, Network network, RaoParameters raoParameters) throws GlskLimitationException, ShiftingException {
         BUSINESS_LOGS.info("Starting shift on network {}", network.getVariantManager().getWorkingVariantId());
 
         // Compute the initial estimation of country net position scaling values, given the counter-trading values
@@ -73,10 +74,10 @@ public final class SweCsaNetworkShifter {
         );
         BUSINESS_LOGS.info("Target exchanges: PT->ES: {}, FR-ES: {}", -targetExchanges.get(DichotomyDirection.ES_PT.toString()), -targetExchanges.get(DichotomyDirection.ES_FR.toString()));
 
-        shiftExchangeValues(network, targetExchanges, scalingValueEstimationPerCountry);
+        shiftExchangeValues(network, targetExchanges, scalingValueEstimationPerCountry, raoParameters);
     }
 
-    void shiftExchangeValues(Network network, Map<String, Double> targetExchanges, Map<String, Double> scalingValueEstimationPerCountry) throws ShiftingException, GlskLimitationException {
+    void shiftExchangeValues(Network network, Map<String, Double> targetExchanges, Map<String, Double> scalingValueEstimationPerCountry, RaoParameters raoParameters) throws ShiftingException, GlskLimitationException {
         ScalableGeneratorConnector scalableGeneratorConnector = new ScalableGeneratorConnector(zonalScalable);
         GeneratorLimitsHandler generatorLimitsHandler = new GeneratorLimitsHandler(zonalScalable);
         Map<String, Double> scalingValuePerCountry = new HashMap<>(scalingValueEstimationPerCountry);
@@ -94,7 +95,7 @@ public final class SweCsaNetworkShifter {
                 shiftNetPositions(network, scalingValuePerCountry);
 
                 // Step 2: Compute exchanges mismatch
-                mismatchPerBorder = computeExchangeValuesMismatch(network, workingVariantCopyId, targetExchanges);
+                mismatchPerBorder = computeExchangeValuesMismatch(network, workingVariantCopyId, targetExchanges, raoParameters);
 
                 // Step 3: Checks balance adjustment results
                 if (mismatchPerBorder.values().stream().allMatch(mismatch -> Math.abs(mismatch) < shiftTolerance)) {
@@ -126,9 +127,9 @@ public final class SweCsaNetworkShifter {
         }
     }
 
-    static Map<String, Double> computeExchangeValuesMismatch(Network network, String workingVariantCopyId, Map<String, Double> targetExchanges) throws ShiftingException {
+    static Map<String, Double> computeExchangeValuesMismatch(Network network, String workingVariantCopyId, Map<String, Double> targetExchanges, RaoParameters raoParameters) throws ShiftingException {
         Map<String, Double> mismatchPerBorder;
-        LoadFlowResult loadFlowResult = LoadFlow.run(network, workingVariantCopyId, LocalComputationManager.getDefault(), LoadFlowParameters.load());
+        LoadFlowResult loadFlowResult = LoadFlow.run(network, workingVariantCopyId, LocalComputationManager.getDefault(), LoadFlowAndSensitivityParameters.getSensitivityWithLoadFlowParameters(raoParameters).getLoadFlowParameters());
         if (!loadFlowResult.isFullyConverged()) {
             String message = String.format("Load-flow computation diverged on network '%s' during balancing adjustment", network.getId());
             throw new ShiftingException(message);
