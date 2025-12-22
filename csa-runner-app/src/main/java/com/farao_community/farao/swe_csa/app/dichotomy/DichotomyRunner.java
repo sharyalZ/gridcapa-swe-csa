@@ -145,7 +145,7 @@ public class DichotomyRunner {
             setWorkingVariant(network, initialVariant, maxCtVariantName);
 
             SweCsaNetworkShifter networkShifter = new SweCsaNetworkShifter(scalableZonalData, initialExchanges.get(ES_FR), initialExchanges.get(ES_PT), new ShiftDispatcher(initialNetPositions));
-            networkShifter.applyCounterTrading(maxCounterTradingValues, network);
+            networkShifter.applyCounterTrading(maxCounterTradingValues, network, raoParameters);
 
             ParallelDichotomiesResult maxCtParallelDichotomiesResult = supplyParallelDichotomiesResult(csaRequest, raoParameters, raoParametersUrl, network, cracPtEs, cracFrEs, scalableZonalData, maxCounterTradingValues);
 
@@ -188,7 +188,7 @@ public class DichotomyRunner {
             try {
                 businessLogger.info("Next CT values are '{}' for PT-ES and '{}' for FR-ES", counterTradingValues.ptEsCt(), counterTradingValues.frEsCt());
                 setWorkingVariant(network, initialVariant, newVariantName);
-                networkShifter.applyCounterTrading(counterTradingValues, network);
+                networkShifter.applyCounterTrading(counterTradingValues, network, raoParameters);
 
                 ParallelDichotomiesResult parallelDichotomiesResult = supplyParallelDichotomiesResult(csaRequest, raoParameters, raoParametersUrl, network, cracPtEs, cracFrEs, scalableZonalDataFilteredForSweCountries, counterTradingValues);
 
