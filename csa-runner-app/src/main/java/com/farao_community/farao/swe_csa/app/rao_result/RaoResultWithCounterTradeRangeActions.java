@@ -8,6 +8,7 @@ import com.powsybl.openrao.data.raoresult.api.RaoResult;
 import com.powsybl.openrao.data.raoresult.api.RaoResultClone;
 import com.farao_community.farao.swe_csa.api.results.CounterTradingResult;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -62,11 +63,8 @@ public class RaoResultWithCounterTradeRangeActions extends RaoResultClone {
 
     @Override
     public Map<RangeAction<?>, Double> getOptimizedSetPointsOnState(State state) {
-        // TODO to be tested when we have counter trade actions, we are not sure that range action keyset contains CT range actions , otherwise we have to fetch them from CounterTradeResult
-        return raoResult.getOptimizedSetPointsOnState(state);
-    }
-
-    public CounterTradingResult getCounterTradingResult() {
-        return counterTradingResult;
+        Map<RangeAction<?>, Double> optimizedSetPointsOnState = new HashMap<>(raoResult.getOptimizedSetPointsOnState(state));
+        counterTradingResult.counterTradeRangeActionResults().keySet().forEach(counterTradeRangeAction -> optimizedSetPointsOnState.put(counterTradeRangeAction, counterTradingResult.getOptimizedSetPointOnState(counterTradeRangeAction)));
+        return optimizedSetPointsOnState;
     }
 }
