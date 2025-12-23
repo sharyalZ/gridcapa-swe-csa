@@ -8,9 +8,9 @@ public record FinalResult(Pair<RaoResult, Status> ptEsResult, Pair<RaoResult, St
 
     public static FinalResult fromDichotomyStepResults(DichotomyStepResult ptEsDichotomyStepResult, DichotomyStepResult frEsDichotomyStepResult) {
         RaoResult raoResultPtEs = ptEsDichotomyStepResult.getRaoResult();
-        Status ptEsStatus = ptEsDichotomyStepResult.getRaoResult().isSecure() ? Status.FINISHED_SECURE : Status.FINISHED_UNSECURE;
+        Status ptEsStatus = ptEsDichotomyStepResult.isSecure() ? Status.FINISHED_SECURE : Status.FINISHED_UNSECURE;
         RaoResult raoResultFrEs = frEsDichotomyStepResult.getRaoResult();
-        Status frEsStatus = frEsDichotomyStepResult.getRaoResult().isSecure() ? Status.FINISHED_SECURE : Status.FINISHED_UNSECURE;
+        Status frEsStatus = frEsDichotomyStepResult.isSecure() ? Status.FINISHED_SECURE : Status.FINISHED_UNSECURE;
         return new FinalResult(Pair.of(raoResultPtEs, ptEsStatus), Pair.of(raoResultFrEs, frEsStatus));
     }
 }
