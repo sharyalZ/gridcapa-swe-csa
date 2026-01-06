@@ -126,7 +126,7 @@ public class DichotomyRunner {
 
         resetToInitialVariant(network, initialVariant, noCtVariantName);
 
-        if (noCtParallelDichotomiesResult.getPtEsResult().isSecure() && noCtParallelDichotomiesResult.getFrEsResult().isSecure()) {
+        if (noCtParallelDichotomiesResult.getPtEsResult().getRaoResult().isSecure(PhysicalParameter.FLOW) && noCtParallelDichotomiesResult.getFrEsResult().getRaoResult().isSecure(PhysicalParameter.FLOW)) {
             businessLogger.info("Input network is secure no need for counter trading");
             fileExporter.saveRaoResultInArtifact(ptEsRaoResultDestinationPath, noCtParallelDichotomiesResult.getPtEsResult().getRaoResult(), cracPtEs);
             fileExporter.saveRaoResultInArtifact(frEsRaoResultDestinationPath, noCtParallelDichotomiesResult.getFrEsResult().getRaoResult(), cracFrEs);
@@ -136,8 +136,8 @@ public class DichotomyRunner {
             double ctPtEsMax = getMaxCounterTrading(ctRaPtEs, ctRaEsPt, expPtEs0, DichotomyDirection.PT_ES.toString());
             double ctFrEsMax = getMaxCounterTrading(ctRaFrEs, ctRaEsFr, expFrEs0, DichotomyDirection.FR_ES.toString());
 
-            double ctPtEsUpperBound = noCtParallelDichotomiesResult.getPtEsResult().isSecure() ? 0 : ctPtEsMax;
-            double ctFrEsUpperBound = noCtParallelDichotomiesResult.getFrEsResult().isSecure() ? 0 : ctFrEsMax;
+            double ctPtEsUpperBound = noCtParallelDichotomiesResult.getPtEsResult().getRaoResult().isSecure(PhysicalParameter.FLOW) ? 0 : ctPtEsMax;
+            double ctFrEsUpperBound = noCtParallelDichotomiesResult.getFrEsResult().getRaoResult().isSecure(PhysicalParameter.FLOW) ? 0 : ctFrEsMax;
             CounterTradingValues maxCounterTradingValues = new CounterTradingValues(ctPtEsUpperBound, ctFrEsUpperBound);
             businessLogger.info("Testing Counter trading worst case by scaling to maximum: CT PT-ES: '{}', and CT FR-ES: '{}'", ctPtEsUpperBound, ctFrEsUpperBound);
 
