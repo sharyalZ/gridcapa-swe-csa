@@ -100,7 +100,7 @@ public class SweCsaRaoValidator {
             if (isSecure && !crac.getVoltageCnecs().isEmpty()) {
                 businessLogger.info("{} crac contains Voltage CNECs. Voltage monitoring will be run.", border);
                 raoResult = resultHelper.updateRaoResultWithVoltageMonitoring(network, crac, raoResult, raoParameters);
-                isSecure = raoResult.isSecure(PhysicalParameter.FLOW, PhysicalParameter.ANGLE, PhysicalParameter.VOLTAGE);
+                isSecure = raoResult.isSecure(PhysicalParameter.FLOW, PhysicalParameter.VOLTAGE);
                 if (isSecure) {
                     businessLogger.info("Voltage monitoring secure for {} border, Final result will contain Voltage monitoring results", border);
                 } else {
