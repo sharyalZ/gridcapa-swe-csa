@@ -73,8 +73,12 @@ public class SweCsaRaoResultValidator {
         RaoResult ptEsRaoResult = parallelDichotomiesResult.getPtEsResult().getRaoResult();
         try {
             // Check if all the flowCnecs in two borders are secure after applying all RAs from two borders
-            TwoBordersFlowCnecSecurityChecker twoBordersFlowCnecSecurityChecker = new TwoBordersFlowCnecSecurityChecker(network, frEsCrac, ptEsCrac, frEsRaoResult, ptEsRaoResult, Runtime.getRuntime().availableProcessors(), businessLogger, loadFlowProvider, loadFlowParameters);
-            Pair<Boolean, Boolean> isSecurePair = twoBordersFlowCnecSecurityChecker.check();
+            List<BorderContext> borderContexts = List.of(new BorderContext(Border.FR_ES, frEsCrac, frEsRaoResult), new BorderContext(Border.PT_ES, ptEsCrac, ptEsRaoResult));
+            TwoBordersFlowCnecSecurityChecker checker = new TwoBordersFlowCnecSecurityChecker(network, borderContexts, Runtime.getRuntime().availableProcessors(), businessLogger, loadFlowProvider, loadFlowParameters);
+            Map<Border, Boolean> securityMap = checker.check();
+            boolean frEsSecure = securityMap.getOrDefault(Border.FR_ES, true);
+            boolean ptEsSecure = securityMap.getOrDefault(Border.PT_ES, true);
+            Pair<Boolean, Boolean> isSecurePair = Pair.of(frEsSecure, ptEsSecure);
             if ((isSecurePair.getLeft() || isSecurePair.getRight()) && (!frEsCrac.getAngleCnecs().isEmpty() || !ptEsCrac.getAngleCnecs().isEmpty())) {
                 // If angleCnecs exist, Angle monitoring
                 // Fixme: if one AngleCnecList is not empty and another one is emtpy. The angle monitoring is processed for the border without angle cnec?

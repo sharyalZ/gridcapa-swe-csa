@@ -1,6 +1,7 @@
 package com.farao_community.farao.swe_csa.app.security_evaluator;
 
 import com.powsybl.action.*;
+import com.powsybl.computation.ComputationManager;
 import com.powsybl.contingency.Contingency;
 import com.powsybl.glsk.commons.CountryEICode;
 import com.powsybl.glsk.commons.ZonalData;
@@ -33,7 +34,19 @@ public final class ResultValidatorHelper {
     private ResultValidatorHelper() {
     }
 
+    public static boolean applyContingency(State state, Network networkClone) {
+        Contingency contingency = state.getContingency().orElse(null);
+        if (contingency == null || !contingency.isValid(networkClone)) {
+            return false;
+        }
+        contingency.toModification().apply(networkClone, (ComputationManager) null);
+        return true;
+    }
+
     public static void applyOptimalRemedialActionsOnContingencyState(State state, Network network, Crac crac, RaoResult raoResult) {
+        if (state == null) {
+            return;
+        }
         if (state.getInstant().isCurative()) {
             Optional<Contingency> contingency = state.getContingency();
             crac.getStates((Contingency) contingency.orElseThrow()).forEach(contingencyState -> applyOptimalRemedialActions(contingencyState, network, raoResult));
