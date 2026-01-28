@@ -14,6 +14,7 @@ import com.powsybl.openrao.commons.PhysicalParameter;
 import com.powsybl.openrao.commons.Unit;
 import com.powsybl.openrao.data.crac.api.Crac;
 import com.powsybl.openrao.data.crac.api.Instant;
+import com.powsybl.openrao.data.crac.api.RemedialAction;
 import com.powsybl.openrao.data.crac.api.State;
 import com.powsybl.openrao.data.crac.api.cnec.Cnec;
 import com.powsybl.openrao.data.crac.api.cnec.CnecValue;
@@ -104,7 +105,7 @@ public class SweCsaRaoResultValidator {
             DichotomyStepResult frEsDichotomyResult = DichotomyStepResult.fromNetworkValidationResult(frEsRaoResult, isSecurePair.getLeft(), parallelDichotomiesResult.getFrEsResult().getRaoSuccessResponse(), parallelDichotomiesResult.getCounterTradingValues());
             DichotomyStepResult ptEsDichotomyResult = DichotomyStepResult.fromNetworkValidationResult(ptEsRaoResult, isSecurePair.getRight(), parallelDichotomiesResult.getPtEsResult().getRaoSuccessResponse(), parallelDichotomiesResult.getCounterTradingValues());
             // Return the updated parallelDichotomiesResult
-            return new ParallelDichotomiesResult(frEsDichotomyResult, ptEsDichotomyResult, parallelDichotomiesResult.getCounterTradingValues());
+            return new ParallelDichotomiesResult(ptEsDichotomyResult, frEsDichotomyResult, parallelDichotomiesResult.getCounterTradingValues());
         } catch (Exception e) {
             throw new CsaInternalException(MDC.get("gridcapaTaskId"), "RAO run failed", e);
         }
@@ -327,7 +328,11 @@ public class SweCsaRaoResultValidator {
             }
 
             businessLogger.info("-- '{}' Monitoring at state '{}' [end]", physicalParameter, primaryState);
-            return Pair.of(new MonitoringResult(physicalParameter, primaryCnecResults, Map.of(primaryState, appliedNetworkActionsResultList.stream().flatMap(r -> r.getAppliedNetworkActions().stream()).collect(Collectors.toSet())), primaryMonitoringResultStatus), new MonitoringResult(physicalParameter, secondaryCnecResults, Map.of(secondaryState, appliedNetworkActionsResultList.stream().flatMap(r -> r.getAppliedNetworkActions().stream()).collect(Collectors.toSet())), secondaryMonitoringResultStatus));
+            // Fixme: null point exception error here
+            Map<State, Set<RemedialAction>> primaryAppliedRas = primaryState != null ? Map.of(primaryState, appliedNetworkActionsResultList.stream().flatMap(r -> r.getAppliedNetworkActions().stream()).collect(Collectors.toSet())) : Collections.emptyMap();
+            Map<State, Set<RemedialAction>> secondaryAppliedRas = secondaryState != null ? Map.of(secondaryState, appliedNetworkActionsResultList.stream().flatMap(r -> r.getAppliedNetworkActions().stream()).collect(Collectors.toSet())) : Collections.emptyMap();
+
+            return Pair.of(new MonitoringResult(physicalParameter, primaryCnecResults, primaryAppliedRas, primaryMonitoringResultStatus), new MonitoringResult(physicalParameter, secondaryCnecResults, secondaryAppliedRas, secondaryMonitoringResultStatus));
         }
     }
 
